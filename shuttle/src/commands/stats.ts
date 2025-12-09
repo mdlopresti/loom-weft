@@ -9,34 +9,15 @@ import { getNATSConnection, closeNATSConnection, CoordinatorSubjects } from '../
 import { output, error, formatKeyValue, colorStatus } from '../utils/output.js';
 import { getGlobalOptions } from '../cli.js';
 
+/**
+ * Stats returned by the coordinator
+ */
 interface CoordinatorStats {
-  agents: {
-    total: number;
-    online: number;
-    busy: number;
-    offline: number;
-    byType: Record<string, number>;
-  };
-  work: {
-    pending: number;
-    assigned: number;
-    inProgress: number;
-    completed: number;
-    failed: number;
-    totalSubmitted: number;
-  };
-  targets: {
-    total: number;
-    available: number;
-    inUse: number;
-    disabled: number;
-    byMechanism: Record<string, number>;
-  };
-  performance: {
-    averageWaitTimeMs?: number;
-    averageCompletionTimeMs?: number;
-    successRate?: number;
-  };
+  pending: number;
+  active: number;
+  completed: number;
+  failed: number;
+  total: number;
 }
 
 export function statsCommand(): Command {
@@ -84,78 +65,17 @@ export function statsCommand(): Command {
           console.log('\nCoordinator Statistics');
           console.log('='.repeat(50));
 
-          // Agents
-          console.log('\nAgents:');
-          console.log(
-            formatKeyValue({
-              'Total': stats.agents.total,
-              'Online': colorStatus('online') + ` (${stats.agents.online})`,
-              'Busy': colorStatus('busy') + ` (${stats.agents.busy})`,
-              'Offline': colorStatus('offline') + ` (${stats.agents.offline})`,
-            })
-          );
-
-          if (Object.keys(stats.agents.byType).length > 0) {
-            console.log('\n  By Type:');
-            console.log(formatKeyValue(stats.agents.byType));
-          }
-
           // Work Items
           console.log('\nWork Items:');
           console.log(
             formatKeyValue({
-              'Pending': stats.work.pending,
-              'Assigned': stats.work.assigned,
-              'In Progress': stats.work.inProgress,
-              'Completed': stats.work.completed,
-              'Failed': stats.work.failed,
-              'Total Submitted': stats.work.totalSubmitted,
+              'Pending': colorStatus('pending') + ` (${stats.pending})`,
+              'Active': colorStatus('busy') + ` (${stats.active})`,
+              'Completed': colorStatus('online') + ` (${stats.completed})`,
+              'Failed': colorStatus('offline') + ` (${stats.failed})`,
+              'Total': stats.total,
             })
           );
-
-          // Targets
-          console.log('\nSpin-Up Targets:');
-          console.log(
-            formatKeyValue({
-              'Total': stats.targets.total,
-              'Available': stats.targets.available,
-              'In Use': stats.targets.inUse,
-              'Disabled': stats.targets.disabled,
-            })
-          );
-
-          if (Object.keys(stats.targets.byMechanism).length > 0) {
-            console.log('\n  By Mechanism:');
-            console.log(formatKeyValue(stats.targets.byMechanism));
-          }
-
-          // Performance
-          if (stats.performance) {
-            console.log('\nPerformance:');
-            const perfMetrics: Record<string, string> = {};
-
-            if (stats.performance.averageWaitTimeMs !== undefined) {
-              perfMetrics['Average Wait Time'] = `${Math.round(
-                stats.performance.averageWaitTimeMs / 1000
-              )}s`;
-            }
-
-            if (stats.performance.averageCompletionTimeMs !== undefined) {
-              perfMetrics['Average Completion Time'] = `${Math.round(
-                stats.performance.averageCompletionTimeMs / 1000
-              )}s`;
-            }
-
-            if (stats.performance.successRate !== undefined) {
-              perfMetrics['Success Rate'] = `${(stats.performance.successRate * 100).toFixed(
-                1
-              )}%`;
-            }
-
-            if (Object.keys(perfMetrics).length > 0) {
-              console.log(formatKeyValue(perfMetrics));
-            }
-          }
 
           console.log();
         }
