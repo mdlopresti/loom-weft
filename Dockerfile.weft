@@ -1,0 +1,54 @@
+# Weft - Coordinator Service Dockerfile
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy workspace files
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY tsconfig.base.json ./
+
+# Copy package sources
+COPY shared/ ./shared/
+COPY weft/ ./weft/
+
+# Install dependencies and build
+RUN pnpm install --frozen-lockfile || pnpm install
+RUN pnpm --filter @loom/shared build
+RUN pnpm --filter @loom/weft build
+
+# Production image
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Install pnpm for workspace resolution
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy built packages
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/shared/package.json ./shared/
+COPY --from=builder /app/shared/dist/ ./shared/dist/
+COPY --from=builder /app/weft/package.json ./weft/
+COPY --from=builder /app/weft/dist/ ./weft/dist/
+COPY --from=builder /app/node_modules/ ./node_modules/
+COPY --from=builder /app/shared/node_modules/ ./shared/node_modules/
+COPY --from=builder /app/weft/node_modules/ ./weft/node_modules/
+
+# Install SSH client for SSH spin-up mechanism
+RUN apk add --no-cache openssh-client
+
+WORKDIR /app/weft
+
+# Expose API port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget -q --spider http://localhost:3000/api/stats || exit 1
+
+# Run the service
+CMD ["node", "dist/index.js"]

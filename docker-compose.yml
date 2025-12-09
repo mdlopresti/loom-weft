@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # NATS Server with JetStream
+  nats:
+    image: nats:2.10-alpine
+    command:
+      - "--jetstream"
+      - "--store_dir=/data"
+      - "--http_port=8222"
+    ports:
+      - "4222:4222"   # Client connections
+      - "8222:8222"   # HTTP monitoring
+    volumes:
+      - nats-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  # Weft - Coordinator Service
+  weft:
+    build:
+      context: .
+      dockerfile: Dockerfile.weft
+    ports:
+      - "3000:3000"
+    environment:
+      - NATS_URL=nats://nats:4222
+      - LOOM_PROJECT_ID=${LOOM_PROJECT_ID:-default}
+      - API_PORT=3000
+      - LOG_LEVEL=info
+    depends_on:
+      nats:
+        condition: service_healthy
+    volumes:
+      # Mount SSH keys for remote spin-up (optional)
+      - ${HOME}/.ssh:/root/.ssh:ro
+    restart: unless-stopped
+
+  # Copilot Bridge (optional - for local copilot agent)
+  copilot-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.copilot-bridge
+    environment:
+      - NATS_URL=nats://nats:4222
+      - LOOM_PROJECT_ID=${LOOM_PROJECT_ID:-default}
+      - AGENT_HANDLE=copilot-local
+      - AGENT_CAPABILITIES=typescript,javascript
+      - AGENT_CLASSIFICATIONS=personal,open-source
+      - REGISTER_TARGET=true
+      - TARGET_NAME=local-copilot
+    depends_on:
+      nats:
+        condition: service_healthy
+      weft:
+        condition: service_started
+    profiles:
+      - with-copilot  # Only start with: docker-compose --profile with-copilot up
+    restart: unless-stopped
+
+volumes:
+  nats-data:
+
+networks:
+  default:
+    name: loom-network

@@ -1,0 +1,5 @@
+packages:
+  - 'shared'
+  - 'weft'
+  - 'shuttle'
+  - 'agent-wrappers/copilot-bridge'

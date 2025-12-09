@@ -1,0 +1,38 @@
+{
+  "name": "@loom/weft",
+  "version": "0.1.0",
+  "description": "Weft - Coordinator service for Loom multi-agent infrastructure",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "weft": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@loom/shared": "workspace:*",
+    "nats": "^2.28.0",
+    "express": "^4.18.0",
+    "cors": "^2.8.5",
+    "ssh2": "^1.15.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/ssh2": "^1.15.0",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.3.0",
+    "tsx": "^4.6.0",
+    "vitest": "^1.0.0"
+  }
+}

@@ -1,0 +1,50 @@
+# Copilot Bridge Dockerfile
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy workspace files
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY tsconfig.base.json ./
+
+# Copy package sources
+COPY shared/ ./shared/
+COPY agent-wrappers/copilot-bridge/ ./agent-wrappers/copilot-bridge/
+
+# Install dependencies and build
+RUN pnpm install --frozen-lockfile || pnpm install
+RUN pnpm --filter @loom/shared build
+RUN pnpm --filter @loom/copilot-bridge build
+
+# Production image
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Install GitHub CLI (for copilot command)
+RUN apk add --no-cache github-cli
+
+# Install pnpm for workspace resolution
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy built packages
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/shared/package.json ./shared/
+COPY --from=builder /app/shared/dist/ ./shared/dist/
+COPY --from=builder /app/agent-wrappers/copilot-bridge/package.json ./agent-wrappers/copilot-bridge/
+COPY --from=builder /app/agent-wrappers/copilot-bridge/dist/ ./agent-wrappers/copilot-bridge/dist/
+COPY --from=builder /app/node_modules/ ./node_modules/
+COPY --from=builder /app/shared/node_modules/ ./shared/node_modules/
+COPY --from=builder /app/agent-wrappers/copilot-bridge/node_modules/ ./agent-wrappers/copilot-bridge/node_modules/
+
+WORKDIR /app/agent-wrappers/copilot-bridge
+
+# Note: User must authenticate GitHub CLI before using
+# Either mount credentials or run: gh auth login
+
+# Run the bridge
+CMD ["node", "dist/index.js"]
