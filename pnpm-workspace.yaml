@@ -3,3 +3,4 @@ packages:
   - 'weft'
   - 'shuttle'
   - 'agent-wrappers/copilot-bridge'
+  - 'tests'

@@ -102,6 +102,24 @@ importers:
         specifier: ^1.0.0
         version: 1.6.1(@types/node@20.19.25)
 
+  tests:
+    devDependencies:
+      '@types/uuid':
+        specifier: ^9.0.7
+        version: 9.0.8
+      nats:
+        specifier: ^2.28.0
+        version: 2.29.3
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      uuid:
+        specifier: ^9.0.0
+        version: 9.0.1
+      vitest:
+        specifier: ^1.0.0
+        version: 1.6.1(@types/node@20.19.25)
+
   weft:
     dependencies:
       '@loom/shared':

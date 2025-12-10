@@ -4,56 +4,101 @@ This directory contains end-to-end integration tests for the Loom coordinator sy
 
 ## Prerequisites
 
-- NATS server running on `localhost:4222`
-- All packages built (`npm run build` in each package)
+- Node.js 20+
+- Docker (for NATS server)
+- pnpm
+
+## Quick Start
+
+```bash
+# Start NATS server with JetStream
+docker run -d --name nats -p 4222:4222 -p 8222:8222 nats:latest -js
+
+# Install dependencies
+cd tests
+pnpm install
+
+# Run integration tests
+pnpm test:integration
+
+# Or run with custom NATS URL
+NATS_URL=nats://your-server:4222 RUN_INTEGRATION=true pnpm test
+```
+
+## Test Files
+
+| File | Description |
+|------|-------------|
+| `agent-lifecycle.test.ts` | Agent registration, status updates, discovery, heartbeat |
+| `work-queue.test.ts` | Work submission, claiming, completion events |
+| `target-management.test.ts` | Target registration and linking (planned) |
+| `failure-scenarios.test.ts` | Error handling and recovery (planned) |
 
 ## Test Scenarios
 
-### Agent Registration Flow
+### Agent Lifecycle (`agent-lifecycle.test.ts`)
 
-1. Start NATS
-2. Agent registers with warp MCP server
-3. Verify agent appears in registry
-4. Agent heartbeats
-5. Agent deregisters
-6. Verify agent is marked offline
+- ✅ Register an agent in KV store
+- ✅ Update agent status (online → busy → offline)
+- ✅ Deregister an agent
+- ✅ Discover agents by scanning KV
+- ✅ Filter agents by capability
+- ✅ Heartbeat timestamp updates
 
-### Work Queue Flow
+### Work Queue (`work-queue.test.ts`)
 
-1. Submit work via shuttle CLI
-2. Agent claims work
-3. Work completes
-4. Results are reported
-5. Verify status updates
+- ✅ Publish work to capability queue
+- ✅ Work with different priorities
+- ✅ Create consumer for capability
+- ✅ Competing consumers
+- ✅ Completion events
+- ✅ Error events
+- ✅ Stream operations (info, purge)
 
-### Target Management
+### Planned Tests
 
-1. Register a spin-up target
-2. Assign agent to target
-3. Verify target state
-4. Unassign agent
-5. Deregister target
+**Target Management:**
+- Register a spin-up target
+- Assign agent to target
+- Verify target state
+- Unassign agent
+- Deregister target
 
-### Failure Scenarios
+**Failure Scenarios:**
+- Agent dies without deregistering (GC cleanup)
+- Work fails after max attempts (DLQ)
+- DLQ retry moves back to queue
+- Work timeout handling
 
-1. Agent dies without deregistering (GC should clean up)
-2. Work fails (should move to DLQ)
-3. DLQ retry (should move back to work queue)
+**Multi-Agent:**
+- Competing consumers for same work
+- Agent failover during work execution
+- Spin-up deduplication under load
 
-## Running Tests
+## CI Integration
 
-```bash
-# Start NATS server first
-docker run -p 4222:4222 -p 8222:8222 nats:latest -js
+These tests are skipped by default unless `RUN_INTEGRATION=true` is set.
+This allows regular unit tests to run without a NATS dependency.
 
-# Run integration tests
-npm run test:integration
+For CI, use a service container:
+
+```yaml
+services:
+  nats:
+    image: nats:latest
+    ports:
+      - 4222:4222
+    options: --js
+
+steps:
+  - run: RUN_INTEGRATION=true pnpm test
+    env:
+      NATS_URL: nats://localhost:4222
 ```
 
-## Test Structure
+## Cleanup
 
-Tests use Vitest and are organized by feature:
-- `agent-lifecycle.test.ts` - Agent registration and lifecycle
-- `work-queue.test.ts` - Work submission and claiming
-- `target-management.test.ts` - Target registration and linking
-- `failure-scenarios.test.ts` - Error handling and recovery
+```bash
+# Stop and remove NATS container
+docker stop nats && docker rm nats
+```
