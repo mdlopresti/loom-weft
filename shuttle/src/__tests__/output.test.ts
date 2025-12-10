@@ -69,7 +69,8 @@ describe('Output Utilities', () => {
 
     it('should output as JSON when json option is true', () => {
       success('Test passed', { json: true });
-      const parsed = JSON.parse(consoleLogs[0]);
+      expect(consoleLogs[0]).toBeDefined();
+      const parsed = JSON.parse(consoleLogs[0]!);
       expect(parsed).toEqual({ success: true, message: 'Test passed' });
     });
   });
@@ -82,7 +83,8 @@ describe('Output Utilities', () => {
 
     it('should output as JSON when json option is true', () => {
       error('Test failed', { json: true });
-      const parsed = JSON.parse(consoleErrors[0]);
+      expect(consoleErrors[0]).toBeDefined();
+      const parsed = JSON.parse(consoleErrors[0]!);
       expect(parsed).toEqual({ success: false, error: 'Test failed' });
     });
   });
@@ -95,7 +97,8 @@ describe('Output Utilities', () => {
 
     it('should output as JSON when json option is true', () => {
       warning('Test warning', { json: true });
-      const parsed = JSON.parse(consoleWarns[0]);
+      expect(consoleWarns[0]).toBeDefined();
+      const parsed = JSON.parse(consoleWarns[0]!);
       expect(parsed).toEqual({ warning: 'Test warning' });
     });
   });
@@ -108,7 +111,8 @@ describe('Output Utilities', () => {
 
     it('should output as JSON when json option is true', () => {
       info('Test info', { json: true });
-      const parsed = JSON.parse(consoleLogs[0]);
+      expect(consoleLogs[0]).toBeDefined();
+      const parsed = JSON.parse(consoleLogs[0]!);
       expect(parsed).toEqual({ info: 'Test info' });
     });
   });
