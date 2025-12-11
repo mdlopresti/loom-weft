@@ -8,7 +8,7 @@
 
 import type { NatsConnection } from 'nats';
 import type { CoordinatorConfiguration } from '@loom/shared';
-import { ExtendedCoordinator, type ExtendedCoordinatorConfig } from '../coordinator/index.js';
+import { ExtendedCoordinator, type ExtendedCoordinatorConfig, initializeRegistry } from '../coordinator/index.js';
 import { TargetRegistry, HealthCheckRunner } from '../targets/index.js';
 import { SpinUpManager } from '../spin-up/index.js';
 import { IdleTracker } from '../idle/index.js';
@@ -47,6 +47,10 @@ export async function createProjectContext(
   const now = new Date();
 
   console.log(`Creating project context for: ${projectId}`);
+
+  // Initialize shared agent registry (reads from Warp's agent-registry KV bucket)
+  await initializeRegistry(nc, projectId);
+  console.log(`  Agent registry initialized for project: ${projectId}`);
 
   // Initialize Target Registry
   const targetRegistry = new TargetRegistry(nc, projectId);

@@ -57,10 +57,11 @@ let bucketName = 'agent-registry';
  */
 export async function initializeRegistry(
   nc: NatsConnection,
-  projectId: string
+  _projectId: string // Kept for API compatibility; bucket is shared across all projects
 ): Promise<void> {
   const js = nc.jetstream();
-  bucketName = `coord-${projectId}-agents`;
+  // Must match Warp's bucket name: DEFAULT_BUCKET_NAME = 'agent-registry' in warp/src/kv.ts
+  bucketName = 'agent-registry';
 
   try {
     registryKV = await js.views.kv(bucketName);
