@@ -4,10 +4,11 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![Beta](https://img.shields.io/badge/Status-Beta-blue.svg)](https://github.com/mdlopresti/loom-weft/releases)
 
 This package contains the orchestration layer for [Loom](../README.md) — the coordinator service (Weft) and command-line tool (Shuttle) that weave work through your agent fabric.
 
-> **⚠️ Alpha Software**: This project is under active development and is not yet production-ready. APIs may change without notice, and there may be bugs or missing features. Use at your own risk. Contributions and feedback are welcome!
+> **🔷 Beta Software**: This project has passed integration testing and is suitable for early adopters. While core functionality is stable, some features may still change. Feedback and contributions are welcome!
 
 > **Weft** (noun): In weaving, the weft threads are the horizontal threads that weave through the warp, creating the pattern.
 >
@@ -387,7 +388,7 @@ Weft is designed for trusted network environments. Consider these security pract
 
 ## Known Limitations
 
-This is **alpha software** under active development. Known limitations include:
+This is **beta software** ready for early adopters. Known limitations include:
 
 ### Scalability
 - Single-node deployment only (no HA/clustering yet)
