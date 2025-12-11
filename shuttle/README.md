@@ -4,8 +4,11 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
+[![Beta](https://img.shields.io/badge/Status-Beta-blue.svg)](https://github.com/mdlopresti/loom-weft/releases)
 
 Shuttle is the CLI tool for [Loom](../../README.md) — submit work, manage agents, and monitor your fleet from the terminal.
+
+> **🔷 Beta Software**: This project has passed integration testing and is suitable for early adopters. Core functionality is stable. Feedback welcome!
 
 > **Shuttle** (noun): In weaving, the shuttle carries the weft thread back and forth across the loom, creating the fabric.
 
@@ -82,14 +85,14 @@ shuttle submit --interactive
 
 # With flags
 shuttle submit "Implement user auth" \
-  --classification personal \
+  --boundary personal \
   --capability typescript \
   --priority 8 \
   --agent-type claude-code \
   --deadline "2024-12-10T17:00:00Z"
 
 # Minimal (uses config defaults)
-shuttle submit "Fix bug" --classification corporate --capability typescript
+shuttle submit "Fix bug" --boundary corporate --capability typescript
 ```
 
 **Options:**
@@ -130,10 +133,13 @@ shuttle spin-up --classification personal --capability python
 # List work
 shuttle work list
 shuttle work list --status pending
-shuttle work list --classification personal
+shuttle work list --boundary personal
 
 # Show work details
 shuttle work show <work-id>
+
+# Cancel work
+shuttle work cancel <work-id>
 
 # Watch progress (real-time)
 shuttle watch <work-id>
@@ -152,7 +158,7 @@ shuttle targets list --status available
 shuttle targets list --mechanism ssh
 
 # Show target details
-shuttle targets get <name-or-id>
+shuttle targets show <name-or-id>
 
 # Add target (interactive)
 shuttle targets add
@@ -166,7 +172,7 @@ shuttle targets add \
   --user mike \
   --command "./bootstrap.sh" \
   --capabilities typescript,python \
-  --classifications personal,open-source
+  --boundaries personal,open-source
 
 # Add local process target
 shuttle targets add \
@@ -175,11 +181,11 @@ shuttle targets add \
   --mechanism local \
   --command "./agent-wrappers/copilot-cli/bootstrap.sh" \
   --capabilities general \
-  --classifications corporate,corporate-adjacent
+  --boundaries corporate,corporate-adjacent
 
 # Update target
 shuttle targets update home-claude --capabilities typescript,python,go
-shuttle targets update home-claude --classifications personal,open-source
+shuttle targets update home-claude --boundaries personal,open-source
 
 # Remove target
 shuttle targets remove <name>
@@ -206,14 +212,25 @@ Displays:
 - Target counts by mechanism
 - Performance metrics
 
-## Work Classifications
+### Projects
 
-| Classification | Description | Routed To |
-|----------------|-------------|-----------|
+```bash
+# List all active projects across the coordinator
+shuttle projects
+```
+
+## Work Boundaries
+
+Boundaries are user-defined labels for routing work to appropriate agents. Common examples:
+
+| Boundary | Description | Typical Routing |
+|----------|-------------|-----------------|
 | `corporate` | Requires corporate access | Copilot CLI only |
 | `corporate-adjacent` | Work-related, no sensitive data | Copilot preferred |
 | `personal` | Personal projects | Claude Code preferred |
 | `open-source` | Public repositories | Any agent |
+
+> **Note**: Boundaries are fully customizable. Define your own based on your workflow needs.
 
 ## Spin-Up Mechanisms
 
@@ -243,7 +260,7 @@ shuttle targets add \
   --user mike \
   --command "./start-claude.sh" \
   --capabilities typescript,python \
-  --classifications personal,open-source
+  --boundaries personal,open-source
 
 # 3. Test target
 shuttle targets test home-claude
@@ -271,7 +288,7 @@ shuttle targets add \
   --mechanism local \
   --command "./agent-wrappers/copilot-cli/bootstrap.sh" \
   --capabilities typescript,python \
-  --classifications corporate,corporate-adjacent
+  --boundaries corporate,corporate-adjacent
 
 # Submit corporate work (auto-routed to Copilot)
 shuttle submit "Update database schema" \
@@ -358,6 +375,16 @@ Shuttle communicates with the Weft coordinator via REST API:
 - **Interactive** — Prompts via `inquirer`
 - **Progress** — Spinners via `ora`
 - **Colors** — Terminal colors via `chalk`
+
+## Known Limitations
+
+This is **beta software** ready for early adopters. Known limitations include:
+
+- **No offline mode**: Requires connection to Weft coordinator for all operations
+- **No work queue persistence**: If Weft restarts, work item state may be lost
+- **Limited progress reporting**: `shuttle watch` polls at intervals; no streaming updates
+- **No batch operations**: Commands operate on single items (no `shuttle submit --batch`)
+- **Interactive mode basic**: `--interactive` mode has limited validation
 
 ## Related
 
