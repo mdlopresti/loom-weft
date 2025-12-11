@@ -73,7 +73,7 @@ Together they enable:
 **Option A: Docker Compose (easiest)**
 
 ```bash
-cd coordinator-system
+cd weft
 docker-compose up -d
 ```
 
@@ -276,6 +276,11 @@ pnpm start
 | `IDLE_TIMEOUT_MS` | Idle detection timeout | `300000` |
 | `LOG_LEVEL` | Logging level | `info` |
 
+**NATS Connection Behavior:**
+- Automatic reconnection enabled with unlimited attempts
+- Fixed 2-second delay between reconnection attempts
+- Connection state changes are logged for monitoring
+
 ### Shuttle Configuration
 
 Stored in `~/.loom/config.json`:
@@ -298,12 +303,22 @@ Weft exposes a REST API for integration:
 | `/health` | GET | Health check |
 | `/api/agents` | GET | List agents |
 | `/api/agents/:guid` | GET | Get agent details |
+| `/api/agents/:guid/shutdown` | POST | Request agent shutdown |
 | `/api/work` | GET | List work items |
 | `/api/work` | POST | Submit work |
 | `/api/work/:id` | GET | Get work item |
+| `/api/work/:id/cancel` | POST | Cancel work item |
 | `/api/targets` | GET | List targets |
 | `/api/targets` | POST | Register target |
+| `/api/targets/:id` | GET | Get target details |
+| `/api/targets/:id` | PUT | Update target |
+| `/api/targets/:id` | DELETE | Remove target |
+| `/api/targets/:id/test` | POST | Test target health |
+| `/api/targets/:id/spin-up` | POST | Trigger target spin-up |
+| `/api/targets/:id/disable` | POST | Disable target |
+| `/api/targets/:id/enable` | POST | Enable target |
 | `/api/stats` | GET | Coordinator stats |
+| `/api/stats/projects` | GET | List active projects |
 
 ## Development
 
@@ -342,6 +357,60 @@ coordinator-system/
 ├── docker-compose.yml
 └── README.md
 ```
+
+## Security
+
+Weft is designed for trusted network environments. Consider these security practices:
+
+### Authentication and Authorization
+- **REST API**: Currently unauthenticated - deploy behind a reverse proxy with authentication for production
+- **NATS**: Supports TLS and credential-based authentication via config file
+- **SSH Keys**: Use key-based authentication for SSH spin-up targets
+- **API Tokens**: Store GitHub/webhook tokens securely using environment variables or secrets management
+
+### Network Security
+- Deploy NATS and Weft on a private network or use TLS for NATS connections
+- Use firewall rules to restrict API access to trusted clients
+- Consider using VPN or SSH tunnels for remote agent connections
+
+### Secrets Management
+- Never commit SSH keys, API tokens, or credentials to version control
+- Use environment variables or dedicated secrets managers (HashiCorp Vault, AWS Secrets Manager, etc.)
+- For Kubernetes deployments, use Kubernetes Secrets with RBAC controls
+
+### Best Practices
+- Regularly rotate SSH keys and API tokens
+- Monitor audit logs for unusual activity
+- Use least-privilege principles for service accounts
+- Keep dependencies up to date to patch security vulnerabilities
+
+## Known Limitations
+
+This is **alpha software** under active development. Known limitations include:
+
+### Scalability
+- Single-node deployment only (no HA/clustering yet)
+- Target registry stored in-memory (lost on restart)
+- No persistent work queue (work items lost if Weft crashes)
+
+### Features
+- No authentication/authorization on REST API
+- No work prioritization across projects in multi-tenant mode
+- Limited observability (metrics/tracing not yet implemented)
+- No automatic target health checking (manual test only)
+
+### Agent Management
+- Idle detection relies on work completion events (agents may stay running if busy with non-Loom work)
+- No graceful shutdown coordination for in-progress work during Weft restart
+- SSH-based spin-up assumes agents can reach NATS (no NAT traversal)
+
+### Platform Support
+- Kubernetes spin-up tested on standard K8s only (not OpenShift, EKS variants, etc.)
+- GitHub Actions spin-up requires public/private repo access (no fine-grained PAT support yet)
+- Local spin-up mechanism assumes Unix-like shell environment
+
+### Roadmap
+We're actively working on addressing these limitations. See the main [Loom README](../README.md) for the project roadmap.
 
 ## Related Components
 
