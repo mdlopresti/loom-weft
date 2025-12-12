@@ -29,33 +29,38 @@ Together they enable:
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      WEFT (Coordinator)                      │
-│                  (Always Running - Central Hub)              │
-├─────────────────────────────────────────────────────────────┤
-│  • Routes work based on classification                       │
-│  • Manages dynamic target registry                           │
-│  • Triggers agent spin-up via SSH/K8s/GitHub Actions        │
-│  • Monitors idle agents and triggers scale-down              │
-│  • Exposes REST API for integration                          │
-└─────────────────────────────────────────────────────────────┘
-          │                    │                    │
-          ▼                    ▼                    ▼
-   ┌──────────┐         ┌──────────┐         ┌──────────┐
-   │   WARP   │         │  Target  │         │   REST   │
-   │ (NATS)   │         │ Registry │         │   API    │
-   └──────────┘         └──────────┘         └──────────┘
-          ▲                                        │
-          │                                        │
-   ┌──────┴──────────────────────────────────────┴──────┐
-   │                                                     │
-   ▼                    ▼                    ▼           ▼
-┌────────┐        ┌────────┐          ┌──────────┐  ┌─────────┐
-│ Claude │        │ Claude │          │ Copilot  │  │ SHUTTLE │
-│ Code   │        │ Code   │          │ CLI      │  │  (CLI)  │
-│(Home)  │        │(Cloud) │          │ (Work)   │  │         │
-└────────┘        └────────┘          └──────────┘  └─────────┘
+```mermaid
+flowchart TB
+    subgraph Weft["WEFT (Coordinator)"]
+        direction LR
+        R["Routes work"]
+        T["Target Registry"]
+        S["Spin-up Manager"]
+        I["Idle Tracker"]
+        A["REST API"]
+    end
+
+    subgraph Interfaces["Interfaces"]
+        WARP["WARP<br/>(NATS)"]
+        Registry["Target<br/>Registry"]
+        REST["REST<br/>API"]
+    end
+
+    subgraph Agents["Agents"]
+        CC1["Claude Code<br/>(Home)"]
+        CC2["Claude Code<br/>(Cloud)"]
+        Copilot["Copilot CLI<br/>(Work)"]
+        Shuttle["SHUTTLE<br/>(CLI)"]
+    end
+
+    Weft --> WARP
+    Weft --> Registry
+    Weft --> REST
+
+    WARP <--> CC1
+    WARP <--> CC2
+    WARP <--> Copilot
+    REST <--> Shuttle
 ```
 
 ## Work Classification
