@@ -5,7 +5,21 @@ All notable changes to Weft (coordinator) and Shuttle (CLI) will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0-beta] - 2025-12-11
+## [0.1.4] - 2025-12-12
+
+### Added
+- **Channels API**: New REST endpoints for listing channels and reading messages
+  - `GET /api/channels?projectId=<id>` - List available channels
+  - `GET /api/channels/:name/messages?projectId=<id>` - Read channel messages
+- **Shuttle channels command**: New CLI commands for channel operations
+  - `shuttle channels list` - List available channels
+  - `shuttle channels read <channel>` - Read messages from a channel
+- **WebSocket transport**: Weft now supports WebSocket connections to NATS (wss://)
+
+### Changed
+- Weft service now auto-detects transport from NATS URL scheme (nats:// vs wss://)
+
+## [0.1.0] - 2025-12-11
 
 ### Added
 - **Multi-tenant support**: Single Weft instance serves multiple projects via auto-discovery
@@ -39,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 0 high/critical vulnerabilities
 - 1 moderate vulnerability in dev dependencies (esbuild via vitest)
 
-## [1.2.0-alpha] - 2025-12-10
+## [0.0.1] - 2025-12-10
 
 ### Added
 - Initial coordinator implementation
@@ -51,3 +65,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Single-node deployment only
 - In-memory state lost on restart
 - No REST API authentication
+
+---
+
+[Unreleased]: https://github.com/mdlopresti/loom-weft/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/mdlopresti/loom-weft/compare/v0.0.1...v0.1.0
+[0.0.1]: https://github.com/mdlopresti/loom-weft/releases/tag/v0.0.1

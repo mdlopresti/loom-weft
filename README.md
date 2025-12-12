@@ -193,6 +193,8 @@ shuttle stats
 | `shuttle spin-up <target>` | Manually trigger spin-up |
 | `shuttle stats` | View coordinator statistics |
 | `shuttle config` | Manage CLI configuration |
+| `shuttle channels list` | List available channels |
+| `shuttle channels read <channel>` | Read messages from a channel |
 
 ## Spin-Up Mechanisms
 
@@ -308,6 +310,22 @@ NATS_PASS=mypassword
 
 URL credentials take precedence over environment variables. Special characters in passwords should be URL-encoded (e.g., `@` → `%40`, `/` → `%2F`).
 
+### WebSocket Transport
+
+Weft supports WebSocket connections for environments where raw TCP is not available (e.g., through CDN proxies like Cloudflare):
+
+```bash
+# WebSocket (for proxied connections)
+NATS_URL=wss://admin:mypassword@nats.example.com
+
+# WebSocket without TLS (local testing only)
+NATS_URL=ws://localhost:8080
+```
+
+The transport is auto-detected from the URL scheme:
+- `nats://` or `tls://` → TCP connection
+- `ws://` or `wss://` → WebSocket connection
+
 ### Shuttle Configuration
 
 Stored in `~/.loom/config.json`:
@@ -346,6 +364,8 @@ Weft exposes a REST API for integration:
 | `/api/targets/:id/enable` | POST | Enable target |
 | `/api/stats` | GET | Coordinator stats |
 | `/api/stats/projects` | GET | List active projects |
+| `/api/channels` | GET | List channels (requires `projectId` query param) |
+| `/api/channels/:name/messages` | GET | Read channel messages (requires `projectId` query param) |
 
 ## Development
 

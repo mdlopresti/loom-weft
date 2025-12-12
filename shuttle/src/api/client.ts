@@ -261,4 +261,24 @@ export class WeftAPIClient {
   async listProjects(): Promise<APIResponse<{ projects: string[]; count: number }>> {
     return this.request('GET', '/api/stats/projects');
   }
+
+  // ============ Channels ============
+
+  async listChannels(
+    projectId: string
+  ): Promise<APIResponse<{ channels: { name: string; description?: string }[]; count: number }>> {
+    return this.request('GET', `/api/channels?projectId=${encodeURIComponent(projectId)}`);
+  }
+
+  async readChannelMessages(
+    projectId: string,
+    channelName: string,
+    limit = 50
+  ): Promise<APIResponse<{ channel: string; messages: { timestamp: string; handle: string; message: string }[]; count: number }>> {
+    const params = new URLSearchParams({
+      projectId,
+      limit: String(limit),
+    });
+    return this.request('GET', `/api/channels/${encodeURIComponent(channelName)}/messages?${params}`);
+  }
 }

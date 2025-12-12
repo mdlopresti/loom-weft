@@ -17,6 +17,8 @@
 
 import type { NatsConnection, ConnectionOptions } from 'nats';
 import { connect as natsConnect } from 'nats';
+import { connect as connectWs } from 'nats.ws';
+import ws from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import type { Server } from 'http';
 import type { CoordinatorConfiguration } from '@loom/shared';
@@ -88,6 +90,84 @@ function extractProjectId(subject: string): string | null {
     return parts[1] ?? null;
   }
   return null;
+}
+
+/**
+ * Convert channel name to stream name (matches Warp's convention)
+ */
+function channelToStreamName(projectId: string, channelName: string): string {
+  // Convert channel name to uppercase and replace hyphens with underscores
+  const streamSuffix = channelName.toUpperCase().replace(/-/g, '_');
+  return `${projectId}_${streamSuffix}`;
+}
+
+/**
+ * Read messages from a JetStream channel stream
+ */
+async function readMessagesFromStream(
+  nc: NatsConnection,
+  projectId: string,
+  channelName: string,
+  limit: number
+): Promise<{ timestamp: string; handle: string; message: string }[]> {
+  const messages: { timestamp: string; handle: string; message: string }[] = [];
+  const streamName = channelToStreamName(projectId, channelName);
+
+  try {
+    const jsm = await nc.jetstreamManager();
+
+    // Get stream info to find message range
+    const streamInfo = await jsm.streams.info(streamName);
+    const { first_seq, last_seq, messages: msgCount } = streamInfo.state;
+
+    if (msgCount === 0) {
+      return messages;
+    }
+
+    // Calculate start sequence for newest N messages
+    const startSeq = Math.max(first_seq, last_seq - limit + 1);
+
+    // Read messages directly from stream by sequence number
+    const stream = await jsm.streams.get(streamName);
+    for (let seq = startSeq; seq <= last_seq; seq++) {
+      try {
+        const msg = await stream.getMessage({ seq });
+        const data = new TextDecoder().decode(msg.data);
+
+        // Parse the message (Warp stores as JSON with handle, message, timestamp)
+        try {
+          const parsed = JSON.parse(data);
+          messages.push({
+            timestamp: parsed.timestamp || msg.time?.toISOString() || new Date().toISOString(),
+            handle: parsed.handle || 'unknown',
+            message: parsed.message || data,
+          });
+        } catch {
+          // If not JSON, treat as plain text
+          messages.push({
+            timestamp: msg.time?.toISOString() || new Date().toISOString(),
+            handle: 'unknown',
+            message: data,
+          });
+        }
+      } catch (err) {
+        // Message may have been deleted by retention policy - skip gaps
+        const error = err as Error;
+        if (!error.message?.includes('no message found')) {
+          console.warn('Error reading message', { seq, error: error.message });
+        }
+      }
+    }
+  } catch (err) {
+    const error = err as Error;
+    // Stream doesn't exist yet - not an error
+    if (error.message?.includes('stream not found')) {
+      return messages;
+    }
+    throw new Error(`Failed to read messages from ${channelName}: ${error.message}`);
+  }
+
+  return messages;
 }
 
 /**
@@ -253,6 +333,20 @@ function createProjectServiceLayer(
 
     async enableTarget(idOrName) {
       await targetRegistry.updateTargetStatus(idOrName, 'available');
+    },
+
+    // Channel operations
+    async listChannels(_projectId: string) {
+      // Default channels - in production, this would read from config or stream list
+      return [
+        { name: 'roadmap', description: 'Discussion about project roadmap and planning' },
+        { name: 'parallel-work', description: 'Coordination for parallel work among agents' },
+        { name: 'errors', description: 'Error reporting and troubleshooting' },
+      ];
+    },
+
+    async readChannelMessages(projectId: string, channelName: string, limit: number) {
+      return readMessagesFromStream(nc, projectId, channelName, limit);
     },
   };
 }
@@ -441,6 +535,17 @@ function createMultiTenantServiceLayer(
         }
       }
       throw new Error(`Target not found: ${idOrName}`);
+    },
+
+    // Channel operations
+    async listChannels(projectId: string) {
+      const context = await getContext(projectId);
+      const layer = createProjectServiceLayer(context, nc);
+      return layer.listChannels(projectId);
+    },
+
+    async readChannelMessages(projectId: string, channelName: string, limit: number) {
+      return readMessagesFromStream(nc, projectId, channelName, limit);
     },
 
     // Multi-tenant specific methods
@@ -762,8 +867,18 @@ export async function startService(): Promise<void> {
     }
 
     const hasAuth = !!urlUser;
-    const nc = await natsConnect(connectOpts);
-    console.log(`  Connected to NATS (authenticated: ${hasAuth})`);
+
+    // Use WebSocket transport if URL scheme is ws:// or wss://
+    let nc: NatsConnection;
+    if (parsedUrl.transport === 'websocket') {
+      // Initialize WebSocket shim for Node.js
+      (globalThis as unknown as { WebSocket: typeof ws }).WebSocket = ws;
+      nc = await connectWs(connectOpts);
+      console.log(`  Connected to NATS via WebSocket (authenticated: ${hasAuth})`);
+    } else {
+      nc = await natsConnect(connectOpts);
+      console.log(`  Connected to NATS via TCP (authenticated: ${hasAuth})`);
+    }
 
     // Initialize Project Manager
     console.log('Initializing Project Manager...');

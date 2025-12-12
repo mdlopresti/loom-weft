@@ -9,6 +9,7 @@ import { createAgentsRouter } from './routes/agents.js';
 import { createWorkRouter } from './routes/work.js';
 import { createStatsRouter } from './routes/stats.js';
 import { createTargetsRouter } from './routes/targets.js';
+import { createChannelsRouter } from './routes/channels.js';
 
 /**
  * Service layer interface
@@ -84,6 +85,15 @@ export interface CoordinatorServiceLayer {
   disableTarget(idOrName: string): Promise<void>;
 
   enableTarget(idOrName: string): Promise<void>;
+
+  // Channel operations
+  listChannels(projectId: string): Promise<{ name: string; description?: string }[]>;
+
+  readChannelMessages(
+    projectId: string,
+    channelName: string,
+    limit: number
+  ): Promise<{ timestamp: string; handle: string; message: string }[]>;
 }
 
 /**
@@ -113,6 +123,7 @@ export function createExpressApp(
   app.use('/api/work', createWorkRouter(serviceLayer));
   app.use('/api/stats', createStatsRouter(serviceLayer));
   app.use('/api/targets', createTargetsRouter(serviceLayer));
+  app.use('/api/channels', createChannelsRouter(serviceLayer));
 
   // Health check endpoint (no auth required)
   app.get('/health', (_req, res) => {

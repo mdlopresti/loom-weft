@@ -17,6 +17,7 @@ import { spinUpCommand } from './commands/spin-up.js';
 import { shutdownCommand } from './commands/shutdown.js';
 import { targetsCommand } from './commands/targets.js';
 import { projectsCommand } from './commands/projects.js';
+import { channelsCommand } from './commands/channels.js';
 
 // Get package.json version
 const __filename = fileURLToPath(import.meta.url);
@@ -58,6 +59,7 @@ export function createCLI(): Command {
   program.addCommand(shutdownCommand());
   program.addCommand(targetsCommand());
   program.addCommand(projectsCommand());
+  program.addCommand(channelsCommand());
 
   return program;
 }

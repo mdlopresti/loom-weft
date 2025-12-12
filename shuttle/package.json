@@ -1,6 +1,6 @@
 {
   "name": "@loom/shuttle",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "Shuttle - CLI tool for Loom multi-agent infrastructure",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
