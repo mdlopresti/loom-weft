@@ -120,10 +120,34 @@ export type AgentType = 'claude' | 'copilot' | 'custom' | string;
 - No NATS utilities are imported (Shuttle uses REST API)
 
 ### Migration Strategy
-When Shuttle is split into its own repo, it will:
-1. Install `@loom/shared` from npm instead of workspace
-2. Change `"@loom/shared": "workspace:*"` to `"@loom/shared": "^0.1.0"`
-3. No code changes required - imports remain identical
+
+**Phase 1: GitHub Packages (Now)**
+
+The shared package is published to GitHub Packages as `@mdlopresti/loom-shared`.
+
+When Shuttle is split into its own repo:
+1. Add `.npmrc` to configure GitHub Packages registry:
+   ```
+   @mdlopresti:registry=https://npm.pkg.github.com
+   ```
+2. Change dependency from `"@loom/shared": "workspace:*"` to `"@mdlopresti/loom-shared": "^0.1.0"`
+3. Update all imports from `'@loom/shared'` to `'@mdlopresti/loom-shared'`
+
+**Files requiring import changes:**
+- `src/api/client.ts`
+- `src/utils/config-file.ts`
+- `src/commands/config.ts`
+- `src/commands/submit.ts`
+- `src/commands/targets.ts`
+- `src/utils/prompts.ts`
+
+**Phase 2: npm (After Dec 16)**
+
+Once npm account is unlocked:
+1. Publish `@loom/shared` to npm
+2. Update Shuttle to use `"@loom/shared": "^0.1.0"` from npm
+3. Revert imports back to `'@loom/shared'`
+4. Remove `.npmrc` (or update to use npmjs.com)
 
 ### Breaking Change Risk: NONE
 - All types are simple aliases or interfaces

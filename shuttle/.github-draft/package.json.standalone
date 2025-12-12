@@ -1,0 +1,45 @@
+{
+  "name": "@loom/shuttle",
+  "version": "0.2.0",
+  "description": "Shuttle - CLI tool for Loom multi-agent infrastructure",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "shuttle": "./dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mdlopresti/loom-shuttle.git"
+  },
+  "homepage": "https://github.com/mdlopresti/loom-shuttle#readme",
+  "bugs": {
+    "url": "https://github.com/mdlopresti/loom-shuttle/issues"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@mdlopresti/loom-shared": "^0.1.0",
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.3",
+    "ora": "^8.0.0",
+    "inquirer": "^9.2.0"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "typescript": "^5.3.0",
+    "tsx": "^4.6.0",
+    "vitest": "^1.0.0"
+  },
+  "_comment": "NOTE: After split, rename imports from '@loom/shared' to '@mdlopresti/loom-shared'"
+}
