@@ -1,4 +1,4 @@
-# Weft + Shuttle
+# Weft
 
 **Intelligent coordination for Loom.**
 
@@ -6,20 +6,20 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![Beta](https://img.shields.io/badge/Status-Beta-blue.svg)](https://github.com/mdlopresti/loom-weft/releases)
 
-This package contains the orchestration layer for [Loom](../README.md) — the coordinator service (Weft) and command-line tool (Shuttle) that weave work through your agent fabric.
+This package contains the orchestration layer for [Loom](../README.md) — the coordinator service that weaves work through your agent fabric.
+
+> **Note**: The Shuttle CLI has been moved to its own repository: **[loom-shuttle](https://github.com/mdlopresti/loom-shuttle)**
 
 > **🔷 Beta Software**: This project has passed integration testing and is suitable for early adopters. While core functionality is stable, some features may still change. Feedback and contributions are welcome!
 
 > **Weft** (noun): In weaving, the weft threads are the horizontal threads that weave through the warp, creating the pattern.
->
-> **Shuttle** (noun): The tool that carries the weft thread back and forth across the loom.
 
 ## Overview
 
-| Component | Purpose |
-|-----------|---------|
-| **Weft** | Coordinator service — routes work, manages agent lifecycle, handles scaling |
-| **Shuttle** | CLI tool — submit work, manage agents, monitor your fleet |
+| Component | Purpose | Repository |
+|-----------|---------|------------|
+| **Weft** | Coordinator service — routes work, manages agent lifecycle, handles scaling | This repo |
+| **Shuttle** | CLI tool — submit work, manage agents, monitor your fleet | [loom-shuttle](https://github.com/mdlopresti/loom-shuttle) |
 
 Together they enable:
 - **Work routing** based on data classification (corporate vs personal)
@@ -119,13 +119,10 @@ shuttle config set projectId my-default-project
 
 ### 2. Install Shuttle
 
+Shuttle is now in its own repository. See **[loom-shuttle](https://github.com/mdlopresti/loom-shuttle)** for installation instructions.
+
 ```bash
 npm install -g @loom/shuttle
-
-# Or build locally
-cd shuttle
-pnpm install && pnpm build
-pnpm link --global
 ```
 
 ### 3. Configure Shuttle
@@ -178,19 +175,15 @@ shuttle stats
 
 ## Shuttle Commands
 
+For full Shuttle CLI documentation, see **[loom-shuttle](https://github.com/mdlopresti/loom-shuttle)**.
+
 | Command | Description |
 |---------|-------------|
 | `shuttle submit <task>` | Submit work to the coordinator |
 | `shuttle agents list` | List registered agents |
-| `shuttle agents shutdown <guid>` | Request agent shutdown |
 | `shuttle work list` | List work items |
 | `shuttle watch <id>` | Watch work progress in real-time |
 | `shuttle targets list` | List spin-up targets |
-| `shuttle targets add` | Add a new target |
-| `shuttle targets remove <name>` | Remove a target |
-| `shuttle targets enable <name>` | Enable a disabled target |
-| `shuttle targets disable <name>` | Disable a target |
-| `shuttle spin-up <target>` | Manually trigger spin-up |
 | `shuttle stats` | View coordinator statistics |
 | `shuttle config` | Manage CLI configuration |
 | `shuttle channels list` | List available channels |

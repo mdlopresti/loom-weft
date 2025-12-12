@@ -1,9 +1,17 @@
 # Changelog
 
-All notable changes to Weft (coordinator) and Shuttle (CLI) will be documented in this file.
+All notable changes to Weft (coordinator) will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+> **Note**: Shuttle CLI has been moved to its own repository: [loom-shuttle](https://github.com/mdlopresti/loom-shuttle)
+
+## [0.1.5] - 2025-12-12
+
+### Changed
+- **Repository Split**: Shuttle CLI has been moved to its own repository ([loom-shuttle](https://github.com/mdlopresti/loom-shuttle))
+- This repository now contains only Weft (coordinator) and shared types
 
 ## [0.1.4] - 2025-12-12
 

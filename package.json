@@ -2,7 +2,7 @@
   "name": "@loom/monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "Weft + Shuttle - Coordination layer for Loom multi-agent infrastructure",
+  "description": "Weft - Coordination layer for Loom multi-agent infrastructure",
   "author": "Michael LoPresti <mike@lopresti.org>",
   "license": "MIT",
   "scripts": {
